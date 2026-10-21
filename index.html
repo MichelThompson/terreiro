@@ -108,6 +108,23 @@ input:focus,textarea:focus,select:focus{outline:0;border-color:var(--ac);box-sha
 @keyframes leave{to{opacity:0;transform:translateY(-12px) scale(.97)}}
 .tg{margin-left:6px;background:linear-gradient(110deg,#ffd84a 30%,#fff3b0 50%,#f08a0a 70%);background-size:220% 100%;color:#2a1700;animation:shine 3.5s linear infinite}
 @keyframes shine{to{background-position:-220% 0}}
+.mail{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:var(--sh);animation:up .5s both;animation-delay:calc(var(--i,0)*60ms);transition:transform .2s,border-color .2s}
+.mail:hover{transform:translateX(5px);border-color:var(--au)}
+.mail .ic{font-size:26px;flex:none}.mail .mb{flex:1;min-width:0}
+.mail .mt{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mail.un .mt{font-weight:800}
+.mail .ms{color:var(--mu);font-size:14px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mail .md{font-size:12px;color:var(--mu);flex:none;align-self:flex-start}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--g2);flex:none;box-shadow:0 0 0 3px var(--ac2)}
+.mc{width:100%;max-width:520px;margin:auto;display:flex;flex-direction:column;align-items:center}
+.env{position:relative;width:140px;height:92px;perspective:700px;animation:envOut .5s 1.3s forwards}
+.env .bk{position:absolute;inset:0;border-radius:10px;background:linear-gradient(160deg,var(--g1),var(--g2));box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.env .lt{position:absolute;left:14px;right:14px;top:12px;bottom:8px;background:#fff;border-radius:6px;animation:peek .6s .7s forwards}
+.env .fl{position:absolute;left:0;right:0;top:0;height:54px;transform-origin:top;background:linear-gradient(180deg,#ffd84a,#e8820c);clip-path:polygon(0 0,100% 0,50% 100%);animation:flap .6s .3s ease-in-out forwards}
+.lw{width:100%;background:var(--bg);border:2px solid var(--au);border-radius:22px;padding:20px 20px 22px;box-shadow:0 0 50px rgba(242,180,26,.45);animation:letter .75s .85s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes flap{to{transform:rotateX(180deg)}}
+@keyframes peek{to{transform:translateY(-34px)}}
+@keyframes envOut{to{opacity:0;height:0}}
+@keyframes letter{from{opacity:0;transform:translateY(80px) scale(.6) rotate(-3deg)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 <link rel="manifest" href="manifest.json">
@@ -161,6 +178,19 @@ const isM=()=>member||canEdit,vis=x=>x.vis!=='filhos'||isM(),TAGF='<span class="
 async function hh(p){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(p)))].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function access(){const v=val('pw2');if(!v)return;const a=await hh('terreiro:'+v),f=await hh('fh:'+v);if(a===PH){if(!can&&typeof claude!=='undefined')return alert('O modo admin precisa da sua conta de editor do site.');canEdit=true;editing=false;return render()}if(D.fh&&f===D.fh){member=true;await sv('role',{h:D.fh});editing=false;return render()}alert('Senha incorreta.')}
 function acesso(){const t='<h3 style="margin:22px 0 0">Acesso especial</h3>';if(canEdit)return t+'<p class="mu" style="margin:4px 0 0">🔓 Modo admin ativo.</p><button class="btn o" onclick="editing=false;lock()">Sair do admin</button>';if(member)return t+'<p class="mu" style="margin:4px 0 0">⭐ Acesso de filho da casa ativo.</p><button class="btn o" onclick="editing=false;leaveM()">Sair do acesso</button>';return t+'<p class="mu" style="margin:4px 0 8px">Admin ou filho da casa? Digite a sua senha.</p><input id="pw2" type="password" autocomplete="off" placeholder="Senha" onkeydown="if(event.key===\'Enter\')access()"><button class="btn" onclick="access()">Entrar</button>'}
+let readIds=new Set();
+const sumr=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>110?t.slice(0,110)+'…':t};
+function row(k,n,t,i,md){const un=!readIds.has(k+n.id);return '<div class="mail'+(un?' un':'')+'"'+st(i)+' onclick="openM(\''+k+'\',\''+n.id+'\')"><span class="ic">'+(un?'✉️':'📖')+'</span><div class="mb"><div class="mt">'+(n.vis==='filhos'?'⭐ ':'')+esc(t)+'</div><div class="ms">'+esc(sumr(n.texto))+'</div></div>'+(un?'<span class="dot"></span>':'')+'<span class="md">'+esc(md||'')+'</span>'+(canEdit||k==='notas'?'<button class="x" onclick="event.stopPropagation();'+(k==='notas'?'delNota':'del(\''+k+'\',')+(k==='notas'?'(':'')+'\''+n.id+'\')">Excluir</button>':'')+'</div>'}
+function openM(k,id){const n=(k==='notas'?notes.items:D[k]).find(x=>x.id===id);if(!n)return;readIds.add(k+id);sv('read',{ids:[...readIds]});
+const t=k==='dicas'||k==='noticias'?n.titulo:(n.gira||'Gira');let tg='';
+if(k==='dicas')tg+='<span class="tag">'+esc(n.cat)+'</span>';
+if(n.guia)tg+='<span class="tag">'+esc(n.guia)+'</span>';
+if(n.linha&&LN[n.linha])tg+='<span class="tag">'+LN[n.linha].e+' '+LN[n.linha].n+'</span>';
+if(n.vis==='filhos')tg+=TAGF;
+const e=document.createElement('div');e.className='ov';e.id='mo';
+e.innerHTML='<div class="mc"><div class="env"><div class="bk"></div><div class="lt"></div><div class="fl"></div></div><div class="lw">'+tg+'<h2 style="margin:6px 0 2px">'+esc(t)+'</h2>'+(n.data?'<div class="mu">'+fmt(n.data)+'</div>':'')+'<p style="white-space:pre-wrap;margin:12px 0 0">'+esc(n.texto)+'</p><button class="btn" onclick="closeM()">Fechar</button></div></div>';
+e.onclick=ev=>{if(ev.target===e)closeM()};document.body.appendChild(e)}
+function closeM(){const e=document.getElementById('mo');if(e)e.remove();render()}
 function sw(f){const p=document.getElementById('panel');if(p){p.classList.add('leave');setTimeout(f,220)}else f()}
 const go=k=>sw(()=>{tab=k;render()});
 const mark=()=>{dirty=true;render()};
@@ -203,7 +233,7 @@ function notas(){
   const opts=[...D.giras].sort((a,b)=>b.data.localeCompare(a.data)).map(g=>'<option value="'+esc(fmt(g.data)+' — '+(g.tema||'Gira'))+'">').join('');
   let c='<div class="adm"><b>Nova anotação</b><p class="mu" style="margin:2px 0 0">Estas são as suas anotações pessoais: só você vê. As mensagens da gira, para todos, ficam no Mural da gira.</p><label>Em qual gira você foi?</label><input id="ng" list="gl" placeholder="Escolha ou escreva"><datalist id="gl">'+opts+'</datalist><label>Linha de trabalho</label><select id="nl"><option value="">Outra / não sei</option><option value="baiano">Baiano</option><option value="boiadeiro">Boiadeiro</option></select><label>Qual guia passou a mensagem?</label><input id="nu" placeholder="Nome do guia"><label>Anotações da consulta</label><textarea id="nt" rows="5" placeholder="O que foi dito, orientações, tarefas…"></textarea><button class="btn" onclick="addNota()">Salvar anotação</button></div>';
   const l=[...notes.items].reverse();
-  return c+(l.length?l.map((n,i)=>'<div class="card"'+st(i)+'><div class="hd"><div><span class="tag">'+esc(n.guia||'Guia não informado')+(n.linha&&LN[n.linha]?' · '+LN[n.linha].e+' '+LN[n.linha].n:'')+'</span><h3>'+esc(n.gira||'Gira')+'</h3></div><button class="x" onclick="delNota(\''+n.id+'\')">Excluir</button></div><div class="mu">Registrado em '+fmt(n.data)+'</div><p>'+esc(n.texto)+'</p></div>').join(''):'<div class="empty">Você ainda não tem anotações.</div>');
+  return c+(l.length?l.map((n,i)=>row('notas',n,n.gira||'Gira',i,fmt(n.data))).join(''):'<div class="empty">Você ainda não tem anotações.</div>');
 }
 async function addNota(){if(!val('ng')&&!val('nt'))return alert('Preencha a gira ou a anotação.');const l=val('nl'),b=l&&LN[l]?cnt(l)+1:0;notes.items.push({id:uid(),data:today(),gira:val('ng'),linha:l,guia:val('nu'),texto:val('nt')});await sv('notes',notes);render();if(b){const t=LN[l].t.find(x=>x[0]===b);if(t)celebrate(l,t)}}
 async function delNota(id){if(!confirm('Excluir esta anotação?'))return;notes.items=notes.items.filter(x=>x.id!==id);await sv('notes',notes);render()}
@@ -212,21 +242,21 @@ function dicas(){
   let c='<div class="chips">'+['Todas',...CATS].map(k=>'<button class="'+(cat===k?'on':'')+'" onclick="sw(()=>{cat=\''+k+'\';render()})">'+k+'</button>').join('')+'</div>';
   if(canEdit)c+='<div class="adm"><b>Nova dica</b><label>Categoria</label><select id="dc">'+CATS.map(k=>'<option>'+k+'</option>').join('')+'</select><label>Título</label><input id="dt"><label>Texto</label><textarea id="dx" rows="4"></textarea><label>Quem pode ver?</label><select id="dv"><option value="">Todos</option><option value="filhos">Só filhos da casa</option></select><button class="btn" onclick="addD()">Adicionar dica</button></div>';
   const l=D.dicas.filter(d=>vis(d)&&(cat==='Todas'||d.cat===cat));
-  return c+(l.length?l.map((n,i)=>'<div class="card"'+st(i)+'><div class="hd"><div><span class="tag">'+esc(n.cat)+'</span>'+(n.vis==='filhos'?TAGF:'')+'<h3>'+esc(n.titulo)+'</h3></div>'+(canEdit?'<button class="x" onclick="del(\'dicas\',\''+n.id+'\')">Excluir</button>':'')+'</div><p>'+esc(n.texto)+'</p></div>').join(''):'<div class="empty">Nenhuma dica nesta categoria.</div>');
+  return c+(l.length?l.map((n,i)=>row('dicas',n,n.titulo,i,n.cat)).join(''):'<div class="empty">Nenhuma dica nesta categoria.</div>');
 }
 function mural(){
   const opts=[...D.giras].sort((a,b)=>b.data.localeCompare(a.data)).map(g=>'<option value="'+esc((g.tema||'Gira')+' ('+fmt(g.data)+')')+'">').join('');
   let c='<p class="mu" style="margin:0 0 12px">Mensagens e orientações passadas nas giras. Todos podem consultar.</p>';
   if(canEdit)c+='<div class="adm"><b>Nova mensagem da gira</b><div class="row"><div><label>Data</label><input type="date" id="mdt" value="'+today()+'"></div><div><label>Guia que falou (opcional)</label><input id="mgu"></div></div><label>Gira</label><input id="mgi" list="mgl" placeholder="Escolha ou escreva"><datalist id="mgl">'+opts+'</datalist><label>O que foi falado</label><textarea id="mtx" rows="5"></textarea><label>Quem pode ver?</label><select id="mvi"><option value="">Todos</option><option value="filhos">Só filhos da casa</option></select><button class="btn" onclick="addM()">Publicar no mural</button></div>';
   const l=[...D.mural].filter(vis).sort((a,b)=>b.data.localeCompare(a.data));
-  return c+(l.length?l.map((n,i)=>'<div class="card"'+st(i)+'><div class="hd"><div>'+(n.guia?'<span class="tag">'+esc(n.guia)+'</span>':'')+(n.vis==='filhos'?TAGF:'')+'<h3>'+esc(n.gira||'Gira')+'</h3></div>'+(canEdit?'<button class="x" onclick="del(\'mural\',\''+n.id+'\')">Excluir</button>':'')+'</div><div class="mu">'+fmt(n.data)+'</div><p>'+esc(n.texto)+'</p></div>').join(''):'<div class="empty">Nenhuma mensagem no mural ainda.</div>');
+  return c+(l.length?l.map((n,i)=>row('mural',n,n.gira||'Gira',i,fmt(n.data))).join(''):'<div class="empty">Nenhuma mensagem no mural ainda.</div>');
 }
 function addM(){if(!val('mtx').trim())return alert('Escreva o que foi falado.');D.mural.push({id:uid(),data:val('mdt')||today(),gira:val('mgi'),guia:val('mgu'),vis:val('mvi'),texto:val('mtx')});mark()}
 function noticias(){
   let c='';
   if(canEdit)c+='<div class="adm"><b>Nova notícia</b><label>Título</label><input id="nt2"><label>Texto</label><textarea id="nx" rows="4"></textarea><label>Quem pode ver?</label><select id="nv"><option value="">Todos</option><option value="filhos">Só filhos da casa</option></select><button class="btn" onclick="addN()">Publicar notícia</button></div>';
   const l=[...D.noticias].filter(vis).sort((a,b)=>b.data.localeCompare(a.data));
-  return c+(l.length?l.map((n,i)=>'<div class="card"'+st(i)+'><div class="hd"><div>'+(n.vis==='filhos'?TAGF:'')+'<h3>'+esc(n.titulo)+'</h3></div>'+(canEdit?'<button class="x" onclick="del(\'noticias\',\''+n.id+'\')">Excluir</button>':'')+'</div><div class="mu">'+fmt(n.data)+'</div><p>'+esc(n.texto)+'</p></div>').join(''):'<div class="empty">Nenhuma notícia ainda.</div>');
+  return c+(l.length?l.map((n,i)=>row('noticias',n,n.titulo,i,fmt(n.data))).join(''):'<div class="empty">Nenhuma notícia ainda.</div>');
 }
 function nav(d){sw(()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+d,1);render()})}
 function pick(k){pre=k;render();const e=document.getElementById('gd');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})}
@@ -255,7 +285,7 @@ render();
   }catch(e){canEdit=false}
   prof=await ld('profile');
   notes=(await ld('notes'))||{items:[]};
-  {const r=await ld('role');member=!!(r&&r.h&&r.h===D.fh)}
+  {const r=await ld('role');member=!!(r&&r.h&&r.h===D.fh);const rr=await ld('read');readIds=new Set(rr&&rr.ids||[])}
   if(!Array.isArray(notes.items))notes={items:[]};
   foto=prof&&prof.foto||'';
   ready=true;render();
